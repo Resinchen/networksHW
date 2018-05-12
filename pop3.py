@@ -3,6 +3,10 @@ import ssl
 
 from MailPop3 import Mail
 
+# 1-письмо с mp3
+# 2-письмо html
+# 3-письмо с картинкой
+
 POP_SERVER = 'pop.yandex.ru'
 SSL_POP_PORT = 995
 
@@ -21,9 +25,11 @@ class POP3Client:
         print('Пожалуйста, авторизуйтесь')
         print('------------------------------')
         print('Введите email')
-        self.email_addr = input()
+        #self.email_addr = input()
+        self.email_addr = 'testIMAPChe@yandex.ru'
         print('Введите пароль')
-        self.email_password = input()
+        #self.email_password = input()
+        self.email_password = 'fortest'
         print('------------------------------')
         print()
 
@@ -37,6 +43,7 @@ class POP3Client:
         self.cache_answer.append(self.sock.recv(1024))
         self.sock.send('PASS {}\r\n'.format(self.email_password).encode())
         self.cache_answer.append(self.sock.recv(1024))
+        print('Вы авторизированы!')
 
     def _start_main_work(self):
         self.count_message = self.cache_answer[-1].decode().replace('\r\n', '').split(' ')[1]
@@ -45,23 +52,23 @@ class POP3Client:
 
         self.sock.send('RETR {}\r\n'.format(self.current_num_message).encode())
         self.message = self._get_full_multy_recv()
-        self.mail = Mail(self.message.decode())
         self.cache_answer.append(self.message)
 
         self.sock.send('TOP {} 0\r\n'.format(self.current_num_message).encode())
         self.top = self._get_full_multy_recv().decode()
         self.cache_answer.append(self.top)
+        self.mail = Mail(self.message.decode(), self.top)
 
         print('------------------------------')
         print()
 
     def _get_full_multy_recv(self):
         data = self.sock.recv(1024)
-        data_all = []
-        while data != b'.\r\n':
+        data_all = b''
+        while b'\r\n.\r\n' not in data_all:
             data = self.sock.recv(1024)
-            data_all.append(data)
-        return b''.join(data_all)
+            data_all += data
+        return data_all
 
     def _print_help(self):
         print('------------------------------')
