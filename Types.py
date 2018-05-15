@@ -1,6 +1,6 @@
 import struct
 
-Typs = {1: 'A', 2: 'NS', 6: 'SOA', 12: 'PTR', 28: 'AAAA'}
+Typs = {1: 'A', 2: 'NS', 28: 'AAAA'}
 Clas = {1: 'IN'}
 
 
@@ -11,9 +11,9 @@ class quere:
         self.other = data[4:12]
         self.name = data[12:-4]
         self._type_code = struct.unpack('!H', data[-4:-2])[0]
-        self.type = Typs[self._type_code]
+        self.type = Typs[self._type_code] if self._type_code in Typs.keys() else self._type_code
         self._clas_code = struct.unpack('!H', data[-2:])[0]
-        self.clas = Clas[self._clas_code]
+        self.clas = Clas[self._clas_code] if self._clas_code in Clas.keys() else self._clas_code
 
     def __str__(self):
         return f'TrID: {self.trID} Name: {self.name} Type: {self.type} Class: {self.clas}'
@@ -86,22 +86,30 @@ class NSnote:
                struct.pack('!H', self.data_length) + self.name_server
 
 
-class typePTR:
+class typeAAAA:
     def __init__(self, data):
-        self.dataa = data
-        self.before_data = data[:40]
-        self.name = data[40:42]
-        self._type_code = struct.unpack('!H', data[42:44])[0]
+        self.before_data = data[:-28]
+        self.name = struct.unpack('!H', data[-28:-26])[0]
+        self._type_code = struct.unpack('!H', data[-26:-24])[0]
         self.type = Typs[self._type_code]
-        self._clas_code = struct.unpack('!H', data[44:46])[0]
+        self._clas_code = struct.unpack('!H', data[-24:-22])[0]
         self.clas = Clas[self._clas_code]
-        self.ttl = struct.unpack('!I', data[46:50])[0]
-        self.after_data = data[50:]
+        self.ttl = struct.unpack('!I', data[-22:-18])[0]
+        self.data_length = struct.unpack('!H', data[-18:-16])[0]
+        self.data_address = data[-16:]
+        self.address = self.get_ipv6(self.data_address)
 
     def __str__(self):
-        return f'Name: {self.name} Type: {self.type} Class: {self.clas} TTL: {self.ttl}'
+        return f'Name: {self.name} Type: {self.type} Class: {self.clas} TTL: {self.ttl} Data: {self.address}'
 
     def create_resp(self):
-        return self.before_data + self.name + \
+        return self.before_data + struct.pack('!H', self.name) + \
                struct.pack('!H', self._type_code) + struct.pack('!H', self._clas_code) + \
-               struct.pack('!I', self.ttl) + self.after_data
+               struct.pack('!I', self.ttl) + struct.pack('!H', self.data_length) + self.data_address
+
+    def get_ipv6(self, data_ip):
+        res = []
+        for i in range(0, len(data_ip), 2):
+            res.append(data_ip[i:i + 2].hex())
+        return ':'.join(res)
+

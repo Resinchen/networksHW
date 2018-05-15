@@ -2,12 +2,13 @@ import pickle
 import socket
 from os.path import exists
 
-from Types import quere, typeA, typeNS, typePTR
+from Types import quere, typeA, typeNS, typeAAAA
 
 PORT = 53
+# SERVER = 'ns1.e1.ru'
 SERVER = '8.8.8.8'
 LOCALHOST = '127.0.0.1'
-
+KNOWED_TYPE = ['A', 'NS', 'AAAA']
 
 class DNS_Cache:
     def __init__(self):
@@ -32,15 +33,15 @@ class DNS_Cache:
         return data
 
     def _set_def_dict(self):
-        return {'A': None, 'NS': None, 'SOA': None, 'PTR': None, 'AAAA': None}
+        return {'A': None, 'NS': None, 'AAAA': None}
 
-    def _get_tyre_resp(self, type, message):
+    def _get_resp_obj(self, type, message):
         if type == 'A':
             return typeA(message)
         elif type == 'NS':
             return typeNS(message)
-        elif type == 'PTR':
-            return typePTR(message)
+        elif type == 'AAAA':
+            return typeAAAA(message)
 
     def _read_cache(self):
         if exists('cache_DNS.ch'):
@@ -62,12 +63,17 @@ class DNS_Cache:
                     self.__sock.sendto(response.create_resp(), address)
                 else:
                     print('Not look!!! {}-{}'.format(cur_que.name, cur_que.type))
-                    response = self._send_to_server(message)
-                    if cur_que.name not in self.__cache.keys():
-                        self.__cache[cur_que.name] = self._set_def_dict()
-                    tyre = self._get_tyre_resp(cur_que.type, response)
-                    self.__cache[cur_que.name][cur_que.type] = tyre
-                    self.__sock.sendto(response, address)
+                    if cur_que.type in KNOWED_TYPE:
+                        response = self._send_to_server(message)
+                        if cur_que.name not in self.__cache.keys():
+                            self.__cache[cur_que.name] = self._set_def_dict()
+                        resp_obj = self._get_resp_obj(cur_que.type, response)
+                        self.__cache[cur_que.name][cur_que.type] = resp_obj
+                        self.__sock.sendto(response, address)
+                    else:
+                        response = self._send_to_server(message)
+                        self.__sock.sendto(response, address)
+
 
                 print()
         except socket.timeout:
