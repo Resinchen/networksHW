@@ -4,12 +4,13 @@ import os
 
 class Mail:
     def __init__(self, retr_data, top_data):
-        self.tfrom = top_data.split('From: ')[1].split('\n')[0].strip() if top_data.__contains__('From: ') else None
-        self.to = top_data.split('To: ')[1].split('\n')[0].strip() if top_data.__contains__('To: ') else None
-        self.subject = top_data.split('Subject: ')[1].split('\n')[0].strip() if top_data.__contains__('Subject: ') else None
-        self.date = top_data.split('\nDate:')[-1].split('\n')[0].strip() if top_data.__contains__('Date: ') else None
-        self.content_type = top_data.split('Content-Type:')[1].split('\n')[0].strip() if top_data.__contains__('Content-Type: ') else 'text/plain'
-        self.boundary = top_data.split('boundary="')[1].split('"')[0] if self.content_type.__contains__('multipart/mixed') else None
+        top_dict = self._get_top_dict(top_data)
+        self.tfrom = top_dict['From'] if 'From' in top_dict.keys() else None
+        self.to = top_dict['To'] if 'To' in top_dict.keys() else None
+        self.subject = top_dict['Subject'] if 'Subject' in top_dict.keys() else None
+        self.date = top_dict['Date'] if 'Date' in top_dict.keys() else None
+        self.content_type = top_dict['Content-Type'] if 'Content-Type' in top_dict.keys() else 'text/plain'
+        self.boundary = top_dict['boundary'] if self.content_type is 'multipart/mixed' else None
         self.contents = self._get_contents(retr_data)
 
     def _get_contents(self, retr_data):
@@ -72,3 +73,16 @@ class Mail:
                     with open(file_name, 'wb') as f:
                         f.write(data_decoded)
         print('Письмо сохранено по пути: {}'.format(path_folder))
+
+    def _get_top_dict(self, top_data):
+        res = dict()
+        top_lines = top_data.split('\r\n')
+        last_key = ''
+        for line in top_lines[:-2]:
+            if '\t' in line:
+                res[last_key] += line
+                continue
+            v = line.split(':')
+            res[v[0]] = v[1].strip()
+            last_key = v[0]
+        return res
