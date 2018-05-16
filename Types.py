@@ -24,9 +24,9 @@ class typeA:
         self.before_data = data[:-16]
         self.name = struct.unpack('!H', data[-16:-14])[0]
         self._type_code = struct.unpack('!H', data[-14:-12])[0]
-        self.type = Typs[self._type_code]
+        self.type = Typs[self._type_code] if self._type_code in Typs.keys() else self._type_code
         self._clas_code = struct.unpack('!H', data[-12:-10])[0]
-        self.clas = Clas[self._type_code]
+        self.clas = Clas[self._type_code]if self._clas_code in Clas.keys() else self._clas_code
         self.ttl = struct.unpack('!I', data[-10:-6])[0]
         self.data_length = struct.unpack('!H', data[-6:-4])[0]
         self.address = struct.unpack('!4B', data[-4:])
@@ -73,9 +73,9 @@ class NSnote:
     def __init__(self, data_of_note):
         self.name = data_of_note[:2]
         self._type_code = struct.unpack('!H', data_of_note[2:4])[0]
-        self.type = Typs[self._type_code]
+        self.type = Typs[self._type_code] if self._type_code in Typs.keys() else self._type_code
         self._clas_code = struct.unpack('!H', data_of_note[4:6])[0]
-        self.clas = Clas[self._clas_code]
+        self.clas = Clas[self._clas_code] if self._clas_code in Clas.keys() else self._clas_code
         self.ttl = struct.unpack('!I', data_of_note[6:10])[0]
         self.data_length = struct.unpack('!H', data_of_note[10:12])[0]
         self.name_server = data_of_note[12:12 + self.data_length]
@@ -91,9 +91,9 @@ class typeAAAA:
         self.before_data = data[:-28]
         self.name = struct.unpack('!H', data[-28:-26])[0]
         self._type_code = struct.unpack('!H', data[-26:-24])[0]
-        self.type = Typs[self._type_code]
+        self.type = Typs[self._type_code] if self._type_code in Typs.keys() else self._type_code
         self._clas_code = struct.unpack('!H', data[-24:-22])[0]
-        self.clas = Clas[self._clas_code]
+        self.clas = Clas[self._clas_code]if self._clas_code in Clas.keys() else self._clas_code
         self.ttl = struct.unpack('!I', data[-22:-18])[0]
         self.data_length = struct.unpack('!H', data[-18:-16])[0]
         self.data_address = data[-16:]
