@@ -2,7 +2,12 @@ import requests
 from PeopleNote import People
 
 
-def main(user_id, access_token):
+def update_token():
+    return "29991d94b580c41085f4251b42527c8abc5a579b7aab92b60954f02809b609725eed182162558c9408579"
+
+
+def main(user_id):
+    access_token = update_token()
     req = create_request(user_id, access_token)
     resp = get_response(req)
     peoples = get_notes_people(resp)
@@ -113,6 +118,6 @@ def saved_sorted_people(name_sort, sorted_people):
 
 
 if __name__ == '__main__':
-    user_id = '101280111'
-    acc_tok = '296c134a7a6004433fa645158a1a118926e92260377b16b76718bbd2a95ecee941263747486f4635b546e'
-    main(user_id, acc_tok)
+    print("Get id user")
+    user_id = input()
+    main(user_id)
