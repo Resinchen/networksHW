@@ -10,7 +10,7 @@ class Mail:
         self.subject = top_dict['Subject'] if 'Subject' in top_dict.keys() else None
         self.date = top_dict['Date'] if 'Date' in top_dict.keys() else None
         self.content_type = top_dict['Content-Type'] if 'Content-Type' in top_dict.keys() else 'text/plain'
-        self.boundary = top_dict['boundary'] if self.content_type is 'multipart/mixed' else None
+        self.boundary = top_dict['boundary'] if self.content_type == 'multipart/mixed;' else None
         self.contents = self._get_contents(retr_data)
 
     def _get_contents(self, retr_data):
@@ -77,12 +77,13 @@ class Mail:
     def _get_top_dict(self, top_data):
         res = dict()
         top_lines = top_data.split('\r\n')
-        last_key = ''
         for line in top_lines[:-2]:
+            if 'boundary' in line:
+                i = line.find('boundary=') + len('boundary=')
+                res[line[1:i-1]] = line[i+1:-1]
+                continue
             if '\t' in line:
-                res[last_key] += line
                 continue
             v = line.split(':')
             res[v[0]] = v[1].strip()
-            last_key = v[0]
         return res
